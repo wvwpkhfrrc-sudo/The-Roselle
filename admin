@@ -1,0 +1,53 @@
+const mongoose = require("mongoose");
+
+const userSchema = new mongoose.Schema({
+  username: String,
+  email: { type: String, unique: true },
+  password: String,
+  profileImage: { type: String, default: "/default-profile.png" },
+  role: { type: String, enum: ["user", "admin"], default: "user" }, // <--- admin эрх
+  favorites: [{ type: mongoose.Schema.Types.ObjectId, ref: "Manga" }],
+  downloads: [{ type: mongoose.Schema.Types.ObjectId, ref: "Manga" }],
+  history: [{ type: mongoose.Schema.Types.ObjectId, ref: "Chapter" }]
+}, { timestamps: true });
+
+module.exports = mongoose.model("User", userSchema);
+require("dotenv").config();
+const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
+
+const createAdmin = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    const email = "Sainaasj0@gmail.com";
+    const password = "AdminPassword123"; // хүссэн нууц үг
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Check if admin already exists
+    let adminUser = await User.findOne({ email });
+    if (adminUser) {
+      adminUser.role = "admin";
+      await adminUser.save();
+      console.log("Admin rights updated for existing user.");
+    } else {
+      adminUser = new User({
+        username: "Sainaasj0",
+        email,
+        password: hashedPassword,
+        role: "admin"
+      });
+      await adminUser.save();
+      console.log("Admin user created successfully!");
+    }
+
+    mongoose.connection.close();
+  } catch (err) {
+    console.error(err);
+  }
+};
+
+createAdmin();
+cd backend
+node scripts/createAdmin.js
+Admin user created successfully!
