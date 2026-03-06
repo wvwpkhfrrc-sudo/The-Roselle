@@ -1,0 +1,151 @@
+MONGO_URI=<Your MongoDB Atlas URI>
+JWT_SECRET=supersecretkey
+CLOUDINARY_CLOUD_NAME=<cloud name>
+CLOUDINARY_API_KEY=<api key>
+CLOUDINARY_API_SECRET=<secret>
+cd backend
+npm install express mongoose cors dotenv bcrypt jsonwebtoken cloudinary axios
+node server.js
+cd frontend
+npm install axios react-icons next
+npm run dev
+@font-face {
+  font-family:'RoselleBold';
+  src:url('/fonts/RoselleBold.ttf') format('truetype');
+}
+body {
+  font-family:'RoselleBold', Arial, sans-serif;
+}
+therosellemanga/
+│
+├─ backend/
+│   ├─ models/
+│   │   ├─ User.js
+│   │   ├─ Manga.js
+│   │   └─ Chapter.js
+│   ├─ routes/
+│   │   ├─ auth.js
+│   │   ├─ manga.js
+│   │   └─ admin.js
+│   ├─ utils/
+│   │   ├─ cloudinary.js
+│   │   └─ scraper.js
+│   ├─ .env.example
+│   └─ server.js
+│
+├─ frontend/
+│   ├─ pages/
+│   │   ├─ index.js
+│   │   ├─ profile.js
+│   │   ├─ manga/[id].js
+│   │   └─ admin.js
+│   ├─ components/
+│   │   ├─ Header.js
+│   │   ├─ MangaCard.js
+│   │   ├─ Editor.js
+│   │   └─ Favorites.js
+│   ├─ styles/globals.css
+│   └─ utils/api.js
+│
+└─ README.md
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
+
+const authRoutes = require("./routes/auth");
+const mangaRoutes = require("./routes/manga");
+const adminRoutes = require("./routes/admin");
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+mongoose.connect(process.env.MONGO_URI)
+  .then(()=> console.log("MongoDB connected"))
+  .catch(err=> console.log(err));
+
+app.use("/api/auth", authRoutes);
+app.use("/api/manga", mangaRoutes);
+app.use("/api/admin", adminRoutes);
+
+app.listen(process.env.PORT || 5000, ()=> console.log("Server running"));
+const mongoose = require("mongoose");
+
+const userSchema = new mongoose.Schema({
+  username:String,
+  email:{type:String, unique:true},
+  password:String,
+  profileImage:{type:String,default:"/default-profile.png"},
+  role:{type:String,enum:["user","admin"],default:"user"},
+  favorites:[{type:mongoose.Schema.Types.ObjectId, ref:"Manga"}],
+  downloads:[{type:mongoose.Schema.Types.ObjectId, ref:"Manga"}],
+  history:[{type:mongoose.Schema.Types.ObjectId, ref:"Chapter"}]
+},{timestamps:true});
+
+module.exports = mongoose.model("User", userSchema);
+import Link from "next/link";
+import { useEffect,useState } from "react";
+
+export default function Header(){
+  const [user,setUser]=useState(null);
+  useEffect(()=>{
+    const data=localStorage.getItem("user");
+    if(data) setUser(JSON.parse(data));
+  },[]);
+
+  return(
+    <header className="header">
+      <h1>The Roselle Manga</h1>
+      <nav>
+        <Link href="/">Home</Link>
+        <Link href="/favorites">Favorites</Link>
+        <Link href="/downloads">Downloads</Link>
+        <Link href="/profile">Profile</Link>
+        {user?.role==="admin" && <Link href="/admin">Admin</Link>}
+      </nav>
+    </header>
+  );
+}
+export default function Editor({pages,onSave}){
+  const [currentPage,setCurrentPage]=useState(0);
+
+  const removeText=()=>alert("Text removed page "+currentPage);
+  const changeFont=(font)=>alert("Font changed to "+font);
+
+  return(
+    <div className="editor">
+      <img src={pages[currentPage]} alt={`Page ${currentPage+1}`}/>
+      <button onClick={removeText}>Remove Text</button>
+      <button onClick={()=>changeFont("RoselleBold")}>Mongolian Font</button>
+      <button onClick={()=>setCurrentPage(currentPage+1)}>Next Page</button>
+      <button onClick={()=>onSave()}>Save</button>
+    </div>
+  );
+}
+@font-face{
+  font-family:'RoselleBold';
+  src:url('/fonts/RoselleBold.ttf') format('truetype');
+}
+body{
+  font-family:'RoselleBold',Arial,sans-serif;
+  background-color:#f4f4f9;
+  margin:0;
+  padding:0;
+}
+.header{
+  background:#ffcccc;
+  padding:10px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.header h1{
+  font-family:'RoselleBold',Arial,sans-serif;
+}
+.manga-card{
+  border:1px solid #ddd;
+  padding:10px;
+  margin:10px;
+  width:180px;
+}
