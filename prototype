@@ -1,0 +1,20 @@
+therosellemanga/
+│
+├─ backend/
+│   ├─ models/          // User.js, Manga.js, Chapter.js
+│   ├─ routes/          // auth.js, manga.js, admin.js
+│   ├─ utils/           // cloudinary.js, scraper.js
+│   └─ server.js
+│
+├─ frontend/
+│   ├─ pages/
+│   │   ├─ index.js
+│   │   ├─ profile.js
+│   │   ├─ manga/[id].js
+│   │   └─ admin.js
+│   ├─ components/
+│   │   ├─ Header.js
+│   │   ├─ MangaCard.js
+│   │   ├─ Editor.js
+│   │   └─ Favorites.js
+│   └─ styles/globals.css
